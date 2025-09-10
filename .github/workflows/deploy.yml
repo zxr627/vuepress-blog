@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,17 +31,18 @@ jobs:
       - name: Build site
         run: npm run docs:build
 
-
-      # 5. 写 CNAME 文件（自定义域名）
+      # 5. 确保 dist 目录存在并写入 CNAME
       - name: Add CNAME
-        run: echo "zxroo.top" > docs/.vuepress/dist/CNAME
+        run: |
+          DIST_DIR="docs/.vuepress/dist"
+          mkdir -p $DIST_DIR
+          echo "zxroo.top" > $DIST_DIR/CNAME
 
-      # 6. 提交构建结果（直接在 main 分支）
+      # 6. 提交构建结果到 main 分支
       - name: Commit build output
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/.vuepress/dist/CNAME
           git add docs/.vuepress/dist
           git commit -m "Deploy VuePress site [skip ci]" || echo "No changes to commit"
           git push
