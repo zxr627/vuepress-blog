@@ -100,10 +100,10 @@ export default hopeTheme({
     },
     comment: {
       provider: "Giscus", // Artalk | Giscus | Waline | Twikoo
-      repo: "simeis147/BlogGiscus",
-      repoId: "R_kgDOKyHOLw",
+      repo: "zxr627/vuepress-blog",
+      repoId: "R_kgDOPtIjfg",
       category: "Announcements",
-      categoryId: "DIC_kwDOKyHOL84CbRA3",
+      categoryId: "DIC_kwDOPtIjfs4CvOyd",
     },
     // install @waline/client before enabling it
     // WARNING: This is a test server for demo only.
