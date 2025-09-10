@@ -3,18 +3,15 @@ name: Deploy VuePress site
 on:
   push:
     branches:
-      - main
+      - main   # 推送 main 分支时触发
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -31,17 +28,7 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          # 使用正确的令牌（根据之前的设置选择其中一个）
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # 若使用个人令牌则替换为：
-          # personal_token: ${{ secrets.PERSONAL_TOKEN }}
-
           publish_dir: docs/.vuepress/dist
           publish_branch: gh-pages
-          cname: zxroo.top
-          force_orphan: true  # 保留这个参数，它是有效的
-
-          # 移除了无效的 force_push 参数
-
-          # 可选：添加提交信息，便于追踪部署记录
-          commit_message: "Deploy from GitHub Actions: ${{ github.sha }}"
+          cname: zxroo.top   # 👈 自动生成 CNAME
