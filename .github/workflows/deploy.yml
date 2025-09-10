@@ -3,44 +3,84 @@ name: Build & Deploy VuePress site to gh-pages
 on:
   push:
     branches:
-      - main
+      - main  # 仅在推送到main分支时触发
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # 确保只在main分支执行，避免重复触发
+    if: github.ref == 'refs/heads/main'
 
     steps:
-      # 1. 检出代码
+      # 1. 检出代码（包含完整历史）
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # 使用最新版本
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # 获取完整提交历史，避免构建依赖问题
 
-      # 2. 安装 Node.js
+      # 2. 安装Node.js（匹配本地版本）
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4  # 使用最新版本
         with:
-          node-version: 20
-          cache: npm
+          node-version: 20.x  # 更灵活的版本匹配
+          cache: 'npm'  # 启用npm缓存加速依赖安装
+          cache-dependency-path: package-lock.json  # 明确缓存路径
 
-      # 3. 安装依赖
+      # 3. 安装依赖（并验证安装结果）
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install
+          # 验证依赖是否安装成功
+          if [ -d "node_modules" ]; then
+            echo "✅ Dependencies installed successfully"
+          else
+            echo "❌ Failed to install dependencies"
+            exit 1
+          fi
 
-      # 4. 构建 VuePress
+      # 4. 构建VuePress（并验证构建结果）
       - name: Build site
-        run: npm run docs:build
+        run: |
+          npm run docs:build
+          # 验证构建目录是否存在
+          if [ -d "docs/.vuepress/dist" ]; then
+            echo "✅ Build completed successfully"
+          else
+            echo "❌ Build failed - dist directory not found"
+            exit 1
+          fi
 
-      # 5. 写入 CNAME 文件
-      - name: Add CNAME
-        run: echo "zxroo.top" > docs/.vuepress/dist/CNAME
+      # 5. 验证构建文件（关键步骤：确保index.html存在）
+      - name: Verify build files
+        run: |
+          # 列出构建目录内容
+          echo "Files in docs/.vuepress/dist:"
+          ls -la docs/.vuepress/dist
+          
+          # 检查index.html是否存在
+          if [ -f "docs/.vuepress/dist/index.html" ]; then
+            echo "✅ index.html exists in dist directory"
+          else
+            echo "❌ index.html not found in dist directory"
+            exit 1
+          fi
 
-      # 6. 部署到 gh-pages
+      # 6. 写入CNAME文件（绑定自定义域名）
+      - name: Add CNAME file
+        run: |
+          echo "zxroo.top" > docs/.vuepress/dist/CNAME
+          # 验证CNAME文件内容
+          echo "CNAME file content:"
+          cat docs/.vuepress/dist/CNAME
+
+      # 7. 部署到gh-pages分支（使用可靠配置）
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v3.9.3  # 使用明确版本，避免自动更新导致问题
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: docs/.vuepress/dist
-          force_orphan: true
-          commit_message: "Deploy VuePress site from main branch"
+          publish_dir: ./docs/.vuepress/dist  # 明确路径前缀
+          force_orphan: true  # 确保gh-pages分支是独立的
+          commit_message: "Deploy: ${{ github.sha }} (${{ github.event.head_commit.message }})"
+          user_name: 'github-actions[bot]'  # 明确提交用户
+          user_email: 'github-actions[bot]@users.noreply.github.com'  # 明确提交邮箱
