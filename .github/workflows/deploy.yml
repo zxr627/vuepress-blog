@@ -3,15 +3,19 @@ name: Deploy VuePress site
 on:
   push:
     branches:
-      - main   # 推送 main 分支时触发
+      - main   # 仅在推送main分支时触发
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # 避免gh-pages分支推送时重复触发（如果有其他工作流可能影响）
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # 拉取完整历史，避免构建时依赖历史提交
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -31,4 +35,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/.vuepress/dist
           publish_branch: gh-pages
-          cname: zxroo.top   # 👈 自动生成 CNAME
+          cname: zxroo.top
+          force_orphan: true  # 关键：强制创建独立的gh-pages分支（即使不存在）
+          force_push: true    # 强制推送，覆盖分支历史（避免冲突）
