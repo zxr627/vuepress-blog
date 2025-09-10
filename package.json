@@ -14,7 +14,6 @@
     "@vuepress/bundler-vite": "2.0.0-rc.13",
     "vue": "^3.4.29",
     "vuepress": "2.0.0-rc.13",
-    "vuepress-plugin-comment2": "2.0.0-rc.30",
     "vuepress-plugin-components": "2.0.0-rc.48",
     "vuepress-plugin-search-pro": "2.0.0-rc.48",
     "vuepress-theme-hope": "2.0.0-rc.48"
