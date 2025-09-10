@@ -1,0 +1,37 @@
+// place your custom styles here
+// @use "@sass-palette/hope-config";
+
+.vp-hero-info {
+    height: 420px;
+}
+  
+.vp-project-image {
+  height: 25px;
+  width: 25px;
+}
+  
+.vp-card {
+  margin-left: 20px;
+  width: 330px;
+}
+
+@media (min-width: 1440px) {
+  body {
+      font-size: 16px !important;
+  }
+}
+
+.search-pro-placeholder {
+  font-family: "LXGW WenKai Screen",PingFang SC,Hiragino Sans GB,Droid Sans Fallback,Microsoft YaHei,sans-serif !important;
+}
+
+  // 侧边栏
+  // }
+  // .vp-sidebar-links {
+  //   position: absolute; /* 设置侧边栏为绝对定位 */
+  //   top: 10px; /* 设置侧边栏的垂直位置 */
+  //   left: 10px; /* 设置侧边栏的水平位置，此处为0表示水平向左浮动 */
+  //   width: 286px;
+  // }
+  
+  
