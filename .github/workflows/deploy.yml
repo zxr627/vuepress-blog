@@ -31,6 +31,7 @@ jobs:
       - name: Build site
         run: npm run docs:build
 
+
       # 5. 写 CNAME 文件（自定义域名）
       - name: Add CNAME
         run: echo "zxroo.top" > docs/.vuepress/dist/CNAME
