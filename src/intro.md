@@ -31,18 +31,21 @@ titles:
 
 
 <div style="text-align:center; opacity: 1;  padding-top: 37px; padding-bottom: 0px;">
-        地球这样的行星，是产生不了重元素的，你身体里的铁，来自璀璨的超新星爆炸。<br/><br/>
-        血液里的锌，源自两次中子星对撞后喷射向宇宙的尘埃。<br/><br/>
-        那微量的铜，更是需要见证一颗白矮星的死亡，<br/><br/>
-        即使是最微不足道的钴，也源自几十亿光年外的星云。<br/><br/>
-        某种意义上讲，人类对星空怀有好奇，是正常的。<br/><br/>
-        渴望见证星河大海的极限，因为我们本就是星辰之子      
+        三千年读史，无外乎功名利禄<br/><br/>
+        九万里悟道，终归于田园<br/><br/>
+        所谓百年功名、千秋霸业、万古流芳<br/><br/>
+        与一件事情相比，其实算不了什么<br/><br/>
+        那就是用你喜欢的方式度过一生<br/><br/>
+        明末当同僚在追逐富贵与功名时 <br/><br/>
+        徐霞客却坐在黄山绝顶 <br/><br/>
+        听了一整天的大雪融化声 <br/><br/>
+        读史明智鉴往而知来，见天地见众生见自己<br/><br/>
 </div>
 
 ## Education
 
 
-<div class="edu-item" style="display: flex; justify-content: space-between; max-width: 910px; margin: 20px auto;">
+<div class="edu-item" style="display: flex; justify-content: space-between; max-width: 710px; margin: 20px auto;">
     <div style="text-align: left;">
         - Eng. in Software Engineering, Henan University of Engineering
     </div>
@@ -80,7 +83,7 @@ titles:
   }
 }
 .misc-container {
-  max-width: 910px;
+  max-width: 710px;
   margin: 0 auto;  
   padding: 0 15px; 
 }
