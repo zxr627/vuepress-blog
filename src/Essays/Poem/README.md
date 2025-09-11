@@ -1,9 +1,10 @@
 ---
-title: 历史诗词
-home: true
-heroText: 诗词小筑
-tagline: 聊以寄怀
-bgImage: assets/poetry/bg.jpg
+title: 诗歌
+index: true
+order: 1
+category:
+  - Essays
+  - Poem
 ---
 
 <div class="poem-card">

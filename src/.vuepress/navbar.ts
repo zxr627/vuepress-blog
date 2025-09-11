@@ -36,7 +36,6 @@ export default navbar([
         text: '算法',
         children: [
           { text: '数据结构', icon: '/assets/icon/dataStructure.svg', link: "/ComputerBasics/DataStructure/" },
-          { text: '算法',  icon: '/assets/icon/algorithm.svg', link: "/ComputerBasics/Algorithm/" }
         ],
       }
     ]

@@ -11,6 +11,16 @@ export default hopeTheme({
   // },
 
   // 'Author',
+
+  // 加密
+  encrypt: {
+    config: {
+      // "/Database/Basic/": ["1234", "5678"],
+      "/Essays/Poem/": ["1234", "5678"],
+    },
+  },
+
+
   pageInfo: ['Date', 'Original', 'Word', 'ReadingTime', 'PageView', 'Category', 'Tag'],
 
   iconAssets: [
@@ -24,7 +34,7 @@ export default hopeTheme({
   docsDir: "docs",  // 文档存放路径
 
   repo: "zxr627", //github图标链接
-  // print: false //打印按钮
+  print: true, //打印按钮
   // pure: true, //纯净模式！
 
   darkmode : "toggle", //在深色模式和浅色模式之间切换

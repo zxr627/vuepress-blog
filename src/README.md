@@ -5,6 +5,7 @@ layout: BlogHome
 title: 🏠️ 博客主页
 heroText: In Time
 tagline: 路漫漫其修远兮
+
 #bgImage: https://raw.githubusercontent.com/zxr627/vuepress-blog/main/src/.vuepress/public/assets/bgImage/iTab-1k6ljv.webp
 bgImage: /assets/bgImage/iTab-1k6ljv.webp
 

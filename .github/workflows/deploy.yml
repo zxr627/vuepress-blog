@@ -57,13 +57,13 @@ jobs:
           ls -la src/.vuepress/dist
 
       - name: Add CNAME file
-        run: echo "zxroo.top" > src/.vuepress/dist/CNAME  # 路径改为 src
+        run: echo "zxroo.top" > src/.vuepress/dist/CNAME
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3.9.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: ./src/.vuepress/dist  # 关键修正：从 docs 改为 src
+          publish_dir: ./src/.vuepress/dist
           force_orphan: true
           commit_message: "Deploy from main: ${{ github.sha }}"
