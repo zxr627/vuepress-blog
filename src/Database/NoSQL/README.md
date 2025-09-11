@@ -53,7 +53,7 @@ Redis（Remote Dictionary Server）是一个基于内存的高性能 **键值数
     - 校验用户传来的 Refresh Token 是否和 Redis 中一致
     - 如果有效 → 生成新的 Access Token
     - 如果无效 / 过期 → 要求重新登录
-   
+
 ---
 
 ## 📝 Redis 存储示例
