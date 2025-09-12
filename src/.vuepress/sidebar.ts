@@ -19,15 +19,6 @@ export default sidebar({
   "/Database/NoSQL/": "structure",
   "/Database/SQL/": "structure",
 
-  "/BackEnd/JavaSE/": "structure",
-  "/BackEnd/JavaWeb/": "structure",
-  "/BackEnd/MyBatis/": "structure",
-  "/BackEnd/MybatisPlus/": "structure",
-  "/BackEnd/Spring/": "structure",
-  "/BackEnd/SpringBoot/": "structure",
-  "/BackEnd/SpringCloud/": "structure",
-  "/BackEnd/SpringMVC/": "structure",
-
   "/FrontEnd/HTML/": "structure",
   "/FrontEnd/CSS/": "structure",
   "/FrontEnd/JavaScript/": "structure",
@@ -41,5 +32,11 @@ export default sidebar({
   "/Projects/tjxt/": "structure",
 
   "/Demo/": "structure",
+
+  "/Essays/Poem": "structure",
+  "/Essays/Daily": "structure",
+  "/Essays/History": "structure",
+
+
 
 });

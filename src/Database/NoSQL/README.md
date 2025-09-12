@@ -17,7 +17,7 @@ Redis（Remote Dictionary Server）是一个基于内存的高性能 **键值数
 - **分布式锁**：利用原子操作实现高效锁机制
 - **消息队列**：通过 `list` 或 `stream` 作为消息中转
 - **Token 管理**：存储用户登录状态和刷新令牌（Refresh Token）
-
+ 
 ---
 
 ## 🔑 为什么要用 Refresh Token
