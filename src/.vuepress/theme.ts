@@ -43,7 +43,7 @@ export default hopeTheme({
 
   // 页面元数据：贡献者，最后修改时间，编辑链接
   contributors: true,
-  lastUpdated: true,
+  lastUpdated: false,
   editLink: false,
 
   breadcrumb: false, //路径导航
