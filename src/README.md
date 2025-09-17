@@ -50,6 +50,32 @@ copyright: Copyright © 2025 - present
   本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
   </span>
   </center>
-
+  <script>
+      // 设置偏移量（可以按需修改）
+      const offsets = {
+    pv: 1150, // 总访问量 +150
+    uv: 510,  // 总访客数 +50
+    page_pv: 120 // 单页阅读量 +20
+    };
+    
+      // 等不蒜子加载完后再修改
+      document.addEventListener("DOMContentLoaded", function () {
+      setTimeout(() => {
+      const pv = document.getElementById("busuanzi_value_site_pv");
+      const uv = document.getElementById("busuanzi_value_site_uv");
+      const pagePv = document.getElementById("busuanzi_value_page_pv");
+    
+      if (pv && pv.innerText) {
+      pv.innerText = parseInt(pv.innerText) + offsets.pv;
+      }
+      if (uv && uv.innerText) {
+      uv.innerText = parseInt(uv.innerText) + offsets.uv;
+      }
+      if (pagePv && pagePv.innerText) {
+      pagePv.innerText = parseInt(pagePv.innerText) + offsets.page_pv;
+      }
+    }, 1500); // 延迟，确保不蒜子已填充数值
+    });
+      </script>
 #copyright: Copyright © 2025 - present <center><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></center>
 ---
