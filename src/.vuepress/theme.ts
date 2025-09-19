@@ -6,17 +6,17 @@ export default hopeTheme({
   hostname: "https://zxroo.top/",
    
   // author: {
-  //   name: "Dongcp",
+  //   name: "Zhaoxr",
   //   url: "https://github.com/zxr627",
   // },
 
   // 'Author',
 
-  // 加密
+  // 文章加密
   encrypt: {
     config: {
       // "/Database/Basic/": ["1234", "5678"],
-      // "/Essays/Poem/": ["1234", "5678"],
+      "/Essays/Poem/": ["1234", "5678"],
     },
   },
 
