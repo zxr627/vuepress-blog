@@ -16,7 +16,7 @@ export default hopeTheme({
   encrypt: {
     config: {
       // "/Database/Basic/": ["1234", "5678"],
-      "/Essays/Poem/": ["1234", "5678"],
+      // "/Essays/Poem/": ["1234", "5678"],
     },
   },
 
