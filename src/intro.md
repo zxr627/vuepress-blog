@@ -23,7 +23,7 @@ name: Zhaoxr
 bgImage: assets/intro/star.jpg
 avatar: assets/intro/IntroduceLogo.png
 titles:
-  - 前端 开发工程师
+  - 前端开发工程师
   - 历史爱好者
   - Blogger
   - 码农
