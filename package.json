@@ -20,6 +20,7 @@
     "vuepress-theme-hope": "2.0.0-rc.48"
   },
   "dependencies": {
-    "lxgw-wenkai-screen-webfont": "^1.7.0"
+    "lxgw-wenkai-screen-webfont": "^1.7.0",
+    "mqcoder": "^1.0.0"
   }
 }

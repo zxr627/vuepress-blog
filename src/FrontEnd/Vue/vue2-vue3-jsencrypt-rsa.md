@@ -127,7 +127,7 @@ const refreshToken = encryptor.encrypt(localStorage.getItem('refreshToken'));
 确保每次加密都会重新设置公钥。
 
 ## 总结
-
+     
 - RSA 本身的确有加密长度限制（常见 1024-bit 公钥最多 117 字节）。  
 - 但本项目里的字段本来就很短，不会超长。真正原因是 **Vue3 项目里公钥没有初始化**。  
 - 看到 `Message too long for RSA` 报错时，不要盲目以为是数据超长，也要检查 **公钥是否正确设置**。  
