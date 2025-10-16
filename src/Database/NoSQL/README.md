@@ -25,7 +25,7 @@ Redis（Remote Dictionary Server）是一个基于内存的高性能 **键值数
 
 但存在一个矛盾：
 - **Access Token 太长**：容易泄露，风险高
-- **Access Token 太短**：用户频繁掉线，体验差
+- **Refresh Token 太短**：用户频繁掉线，体验差
 
 👉 于是就有了 **双 Token 机制**：
 - **Access Token**：短期有效（如 15 分钟），用于接口调用认证
