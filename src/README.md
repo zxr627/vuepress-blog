@@ -2,7 +2,7 @@
 home: true
 layout: BlogHome
 
-title: 🏠️ 博客主页
+title: 博客主页
 heroText: In Time
 tagline: 路漫漫其修远兮
 
