@@ -1,7 +1,7 @@
 ---
 title: 过明论
 index: true
-order: 1
+order: 2
 date: 2025-09-12
 tag:
   - 明朝

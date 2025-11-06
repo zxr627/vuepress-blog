@@ -1,7 +1,7 @@
 ---
 title: 南明悲歌
 index: true
-order: 2
+order: 1
 date: 2025-09-16
 tag:
   - 南明
