@@ -1,6 +1,6 @@
 ---
 title: 过明论
-index: true
+
 order: 2
 date: 2025-09-12
 tag:
