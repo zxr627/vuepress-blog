@@ -1,3 +1,10 @@
+---
+order: 8
+date: 2025-11-28
+category: 
+  - Vue
+---
+
 # MobileTopup Admin 脚手架·开发指南
 
 ## 1. 项目介绍
