@@ -71,6 +71,7 @@ titles:
 
 
 
+
 <style>
 @media (max-width: 600px) {
   .edu-item {
@@ -82,15 +83,21 @@ titles:
     margin: 5px 0;
   }
 }
+
+
+
 .misc-container {
   max-width: 710px;
   margin: 0 auto;  
   padding: 0 15px; 
 }
 
+
+
 .misc-container li {
   margin: 12px 0;
   line-height: 1.6;
   list-style-position: inside; 
 }
+
 </style>

@@ -24,6 +24,8 @@ category:
 - 后端将 refreshToken 存储在 Redis 中，用于校验和失效控制。
 - 前端将 accessToken 存储在浏览器中，用于每次接口访问。
 
+
+![alt text](img.png)
 ---
 
 ## 🚪 二、登录阶段（Token 生成与存储）
