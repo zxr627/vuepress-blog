@@ -124,6 +124,7 @@ const xml = create(obj).end({ prettyPrint: true });
 ### ❌ 1. Content-Type 填错
 SOAP 必须使用：
 
+
 ```
 text/xml;charset=utf-8
 ```
@@ -174,6 +175,8 @@ const response = await axios.post("https://api.example.com/user", xml, {
 });
 ```
 
+
+
 ---
 
 # 7. 返回结果如何处理？
@@ -182,14 +185,13 @@ const response = await axios.post("https://api.example.com/user", xml, {
 
 ```ts
 import { xml2js } from "xml-js";
-
 const json = xml2js(response.data, { compact: true });
 ```
 
 ---
 
-# 8. 前端处理 XML/SOAP 的最佳实践
 
+# 8. 前端处理 XML/SOAP 的最佳实践
 ✔ 使用 XML Builder 自动生成 XML  
 ✔ 避免手写复杂 namespace  
 ✔ 返回结果用 xml-js 转成 JSON  
@@ -203,3 +205,5 @@ const json = xml2js(response.data, { compact: true });
 虽然 XML/SOAP 在现代 Web 开发中已不常见，但在 **ToB、政企、运营商、银行等传统业务系统中仍被大量使用**。
 
 掌握 XML 与 SOAP 请求处理能力，将在维护旧系统、对接传统接口时大幅提升效率。
+
+
