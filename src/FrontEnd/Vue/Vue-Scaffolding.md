@@ -1,7 +1,7 @@
 ---
 order: 8
 date: 2025-11-28
-category: 
+category:
   - Vue
 ---
 

@@ -97,7 +97,7 @@ titles:
 .misc-container li {
   margin: 12px 0;
   line-height: 1.6;
-  list-style-position: inside; 
+  list-style-position: inside;                                                                                                                   
 }
 
 </style>
