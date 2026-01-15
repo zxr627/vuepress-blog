@@ -16,7 +16,7 @@ export default hopeTheme({
   encrypt: {
     config: {
       // "/Database/Basic/": ["1234", "5678"],
-      // "/Essays/Poem/": ["1234", "5678"],
+      // "/Essays/": ["1234", "5678"],
     },
   },
 
@@ -30,7 +30,7 @@ export default hopeTheme({
 
   // logo: "/ ", //导航栏logo
   // logoDark: "/ ", //黑夜模式导航栏logo
-  // hotReload: true,  // 开发模式下是否启动热更新，显示所有更改并重新渲染
+  hotReload: true,  // 开发模式下是否启动热更新，显示所有更改并重新渲染
   docsDir: "docs",  // 文档存放路径
 
   repo: "zxr627", //github图标链接

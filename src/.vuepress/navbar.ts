@@ -93,13 +93,13 @@ export default navbar([
         children: [
           { text: "🏺 历史漫谈", icon: '/assets/icon/history.svg', link: "/Essays/History/" },
           { text: "☕ 日常散文", icon: '/assets/icon/note.svg', link: "/Essays/Daily/" },
-          { text: "✍️ 诗歌作品", icon: '/assets/icon/poem.svg', link: "/Essays/Poem/" },
+          { text: "✍️ 诗词作品", icon: '/assets/icon/poem.svg', link: "/Essays/Poem/" },
         ]
       },
       {
         text: '关于作者',
         children: [
-          { text: "📝自我介绍", icon: '/assets/icon/poem.svg', link: "intro.md" },
+          { text: "📝 自我介绍", icon: '/assets/icon/poem.svg', link: "intro.md" },
         ]
       }
     ]
