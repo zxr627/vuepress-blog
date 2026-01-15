@@ -50,9 +50,9 @@ ssh root@你的服务器IP
 ### 1️⃣ 下载并运行安装脚本
 
 ```bash
-yum install wget
-wget –no-check-certificate -O shadowsocks.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks.sh
+wget --no-check-certificate -O shadowsocks.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks.sh
 chmod +x shadowsocks.sh
+./shadowsocks.sh 2>&1 | tee shadowsocks.log
 ```
 开源地址参照：[clown-coding/vpn](https://github.com/clown-coding/vpn)
 
