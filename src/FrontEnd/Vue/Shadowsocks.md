@@ -1,15 +1,19 @@
 ---
+title: 基于 CentOS Stream 9 架构下的 x-ui 面板部署
+index: true
 order: 1
-date: 2026-1-5
+date: 2026-02-09
 category: 
   - Vue
 ---
 
 
 
-# RackNerd服务器搭建 Shadowsocks 教程
+# 基于 CentOS Stream 9 架构下的 x-ui 面板部署
 
 这篇文档教你如何在 **RackNerd 的 VPS** 上搭建 **Shadowsocks（SS）** 服务。
+
+PS：目前已知只适用于CentOS9， 其他系统望自行尝试。
 
 考虑到不同用户的使用习惯，本文提供两种方案：
 
@@ -83,7 +87,7 @@ chmod +x shadowsocks.sh
 ### 1️⃣ 安装 X-UI 面板
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/FranzKafkaYu/x-ui/master/install.sh)
 ```
 
 安装过程中需要设置：
@@ -177,3 +181,9 @@ ufw disable
 
 ---
 
+### Q3：所有设置都没问题，依旧无法上网怎么办？
+
+- 更换冷门端口，避免使用6666 12345这些端口
+- 许多宽带运营商（尤其是国内电信、联通、移动）会对这类特征明显的端口进行深度数据包检测（DPI）
+
+---

@@ -62,7 +62,7 @@ tag:
   background="rgba(253, 230, 138, 0.15)"
 />
 
-## 4. 🏙️ 矢量图标库 
+## 4. 🏙️ 矢量图标库
 
 <VPCard
   title="Fontawesome"
