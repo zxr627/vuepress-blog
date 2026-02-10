@@ -96,12 +96,8 @@ export default navbar([
           { text: "✍️ 诗词作品", icon: '/assets/icon/poem.svg', link: "/Essays/Poem/" },
         ]
       },
-      {
-        text: '关于作者',
-        children: [
-          { text: "📝 自我介绍", icon: '/assets/icon/poem.svg', link: "intro.md" },
-        ]
-      }
+
     ]
-  }
+  },
+  { text: "📝 关于作者", icon: '/assets/icon/poem.svg', link: "intro.md" },
 ]);
