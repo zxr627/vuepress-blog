@@ -16,7 +16,7 @@ export default navbar([
       {
         text: '工具',
         children: [
-          { text: "Git",       icon: '/assets/icon/git.svg', link: "/Tools/Git/" },
+          { text: "Git", icon: '/assets/icon/git.svg', link: "/Tools/Git/" },
         ]
       }
     ]
@@ -85,6 +85,7 @@ export default navbar([
       }
     ]
   },
+
   {
     text: '🖋️ 随笔',
     children: [
