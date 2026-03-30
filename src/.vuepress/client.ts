@@ -46,6 +46,7 @@ type DebugPanel = "default" | "system" | "network" | "element" | "storage";
 declare global {
   interface Window {
     __zxrDebugListenersBound?: boolean;
+    __zxrTouchCompatBound?: boolean;
     __zxrTouchProbeMounted?: boolean;
     __zxrVConsoleLoaded?: boolean;
     __zxrVConsoleInstance?: {
@@ -147,6 +148,37 @@ const resolveDebugOpen = (): boolean => {
 const resolveTouchProbeFlag = (): boolean => {
   const url = new URL(window.location.href);
   return url.searchParams.get(TOUCH_PROBE_QUERY_KEY) === "1";
+};
+
+const isWechatIOS = (): boolean => {
+  const userAgent = window.navigator.userAgent;
+  return /MicroMessenger/i.test(userAgent) && /iPhone|iPad|iPod/i.test(userAgent);
+};
+
+const describeTargetElement = (element: Element | null): string => {
+  if (!element) return "target: none";
+
+  const text = (element.textContent || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 28);
+  const className = String(element.className || "")
+    .trim()
+    .replace(/\s+/g, ".");
+
+  return [
+    element.tagName.toLowerCase(),
+    className ? `.${className}` : "",
+    text ? ` ${text}` : "",
+  ].join("");
+};
+
+const emitTouchCompatMessage = (message: string): void => {
+  window.dispatchEvent(
+    new CustomEvent("zxr-touch-compat", {
+      detail: message,
+    }),
+  );
 };
 
 const sendDebugReport = (reportUrl: string | null, payload: DebugReport): void => {
@@ -330,21 +362,6 @@ const mountTouchProbe = (): void => {
     ].join("\n");
   };
 
-  const describeElement = (element: Element | null): string => {
-    if (!element) return "target: none";
-
-    const text = (element.textContent || "")
-      .trim()
-      .replace(/\s+/g, " ")
-      .slice(0, 28);
-
-    return [
-      element.tagName.toLowerCase(),
-      element.className ? `.${String(element.className).replace(/\s+/g, ".")}` : "",
-      text ? ` ${text}` : "",
-    ].join("");
-  };
-
   const probe = (
     eventName: keyof typeof counts,
     target: EventTarget | null,
@@ -359,8 +376,8 @@ const mountTouchProbe = (): void => {
         : null;
 
     const line = point
-      ? `${eventName}: ${describeElement(targetElement)} | top ${describeElement(topElement)} @ ${Math.round(point.x)},${Math.round(point.y)}`
-      : `${eventName}: ${describeElement(targetElement)}`;
+      ? `${eventName}: ${describeTargetElement(targetElement)} | top ${describeTargetElement(topElement)} @ ${Math.round(point.x)},${Math.round(point.y)}`
+      : `${eventName}: ${describeTargetElement(targetElement)}`;
 
     render(line);
   };
@@ -397,6 +414,132 @@ const mountTouchProbe = (): void => {
 
   window.addEventListener("hashchange", () => render("route: hashchange"));
   window.addEventListener("popstate", () => render("route: popstate"));
+  window.addEventListener("zxr-touch-compat", (event) => {
+    if (event instanceof CustomEvent && typeof event.detail === "string")
+      render(event.detail);
+  });
+};
+
+const bindWechatIOSTouchCompat = (): void => {
+  if (window.__zxrTouchCompatBound || !isWechatIOS()) return;
+  window.__zxrTouchCompatBound = true;
+
+  const interactiveSelector = [
+    "a[href]",
+    "button",
+    "[role='button']",
+    "[role='navigation']",
+    ".vp-dropdown-title",
+    ".vp-nav-screen-menu-title",
+    ".vp-toggle-navbar-button",
+    ".vp-toggle-sidebar-button",
+    ".page-category-item.clickable",
+    ".page-tag-item.clickable",
+    ".vp-blogger[role='link']",
+  ].join(", ");
+
+  let startX = 0;
+  let startY = 0;
+  let moved = false;
+  let pendingToken = 0;
+  let compatDispatching = false;
+  let lastInteractive: HTMLElement | null = null;
+
+  const findInteractiveTarget = (target: EventTarget | null): HTMLElement | null => {
+    if (!(target instanceof Element)) return null;
+
+    const interactive = target.closest(interactiveSelector);
+
+    if (!(interactive instanceof HTMLElement)) return null;
+    if (interactive.closest("#__vconsole, #zxr-touch-probe")) return null;
+    if (interactive.matches(":disabled")) return null;
+    if (interactive.getAttribute("aria-disabled") === "true") return null;
+
+    return interactive;
+  };
+
+  document.addEventListener(
+    "touchstart",
+    (event) => {
+      const touch = event.changedTouches?.[0] || event.touches?.[0];
+      if (!touch) return;
+
+      startX = touch.clientX;
+      startY = touch.clientY;
+      moved = false;
+      lastInteractive = findInteractiveTarget(event.target);
+    },
+    true,
+  );
+
+  document.addEventListener(
+    "touchmove",
+    (event) => {
+      const touch = event.changedTouches?.[0] || event.touches?.[0];
+      if (!touch) return;
+
+      if (
+        Math.abs(touch.clientX - startX) > 12 ||
+        Math.abs(touch.clientY - startY) > 12
+      ) {
+        moved = true;
+      }
+    },
+    true,
+  );
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (compatDispatching) return;
+
+      const interactive = findInteractiveTarget(event.target);
+      if (interactive && interactive === lastInteractive) pendingToken += 1;
+    },
+    true,
+  );
+
+  document.addEventListener(
+    "touchend",
+    (event) => {
+      const touch = event.changedTouches?.[0] || event.touches?.[0];
+      if (!touch || moved) return;
+
+      const interactive = findInteractiveTarget(event.target) || lastInteractive;
+      if (!interactive) return;
+
+      const token = ++pendingToken;
+      const point = {
+        x: touch.clientX,
+        y: touch.clientY,
+      };
+
+      window.setTimeout(() => {
+        if (token !== pendingToken) return;
+
+        compatDispatching = true;
+        emitTouchCompatMessage(
+          `compat-click: ${describeTargetElement(interactive)} @ ${Math.round(point.x)},${Math.round(point.y)}`,
+        );
+
+        interactive.dispatchEvent(
+          new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            composed: true,
+            view: window,
+            clientX: point.x,
+            clientY: point.y,
+          }),
+        );
+
+        window.setTimeout(() => {
+          compatDispatching = false;
+        }, 0);
+      }, 80);
+    },
+    true,
+  );
 };
 
 const syncDebugConsoleVisibility = (
@@ -486,6 +629,8 @@ export default defineClientConfig({
     setupTransparentNavbar({ type: "homepage" });
 
     if (typeof window === "undefined") return;
+
+    bindWechatIOSTouchCompat();
 
     if (resolveTouchProbeFlag()) mountTouchProbe();
 
