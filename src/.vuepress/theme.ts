@@ -86,7 +86,7 @@ export default hopeTheme({
   navbarLayout: {
     start: ["Brand"],
     center: ["Links"],
-    end: ["Language", "Repo", "Outlook", "Search"],
+    end: ["Language", "Repo", "Outlook"],
   },
 
   plugins: {
@@ -94,19 +94,6 @@ export default hopeTheme({
     blog: {
       excerptLength: 0,
     },
-    searchPro: {
-      indexContent: true,
-      customFields: [
-      {
-        getter: (page) => page.frontmatter.tag,
-        formatter: "标签：$content",
-      },
-      {
-        getter: (page) => page.frontmatter.category,
-        formatter: "分类：$content",
-      },
-      ]
-    }, 
     components: {
       components: [
         "SiteInfo",
