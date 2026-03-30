@@ -13,6 +13,7 @@ const PANEL_QUERY_KEY = "debugPanel";
 const PANEL_STORAGE_KEY = "zxr-mobile-debug-panel";
 const REPORT_QUERY_KEY = "reportUrl";
 const REPORT_STORAGE_KEY = "zxr-debug-report-url";
+const TOUCH_PROBE_QUERY_KEY = "touchProbe";
 const DEBUG_REPLAY_LIMIT = 30;
 
 type DebugLogType =
@@ -45,9 +46,11 @@ type DebugPanel = "default" | "system" | "network" | "element" | "storage";
 declare global {
   interface Window {
     __zxrDebugListenersBound?: boolean;
+    __zxrTouchProbeMounted?: boolean;
     __zxrVConsoleLoaded?: boolean;
     __zxrVConsoleInstance?: {
       destroy?: () => void;
+      hide?: () => void;
       show?: () => void;
       showSwitch?: () => void;
       showPlugin?: (name: DebugPanel) => void;
@@ -139,6 +142,11 @@ const resolveDebugPanel = (): DebugPanel => {
 const resolveDebugOpen = (): boolean => {
   const url = new URL(window.location.href);
   return url.searchParams.get(OPEN_QUERY_KEY) === "1";
+};
+
+const resolveTouchProbeFlag = (): boolean => {
+  const url = new URL(window.location.href);
+  return url.searchParams.get(TOUCH_PROBE_QUERY_KEY) === "1";
 };
 
 const sendDebugReport = (reportUrl: string | null, payload: DebugReport): void => {
@@ -270,6 +278,151 @@ const replayBufferedLogs = (logs: DebugLog[]): void => {
   }
 };
 
+const mountTouchProbe = (): void => {
+  if (window.__zxrTouchProbeMounted) return;
+  window.__zxrTouchProbeMounted = true;
+
+  const panel = document.createElement("div");
+  panel.id = "zxr-touch-probe";
+  panel.setAttribute(
+    "style",
+    [
+      "position:fixed",
+      "right:8px",
+      "bottom:8px",
+      "z-index:2147483645",
+      "max-width:240px",
+      "padding:8px 10px",
+      "border-radius:10px",
+      "background:rgba(17,24,39,0.86)",
+      "color:#fff",
+      "font:12px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
+      "white-space:pre-line",
+      "pointer-events:none",
+      "box-shadow:0 8px 24px rgba(0,0,0,0.25)",
+    ].join(";"),
+  );
+
+  const counts: Record<string, number> = {
+    pointerdown: 0,
+    pointerup: 0,
+    touchstart: 0,
+    touchend: 0,
+    click: 0,
+  };
+
+  const getBundleName = (): string => {
+    const appScript = Array.from(document.scripts).find((script) =>
+      /\/assets\/app-[^/]+\.js/.test(script.src),
+    );
+
+    return appScript?.src.split("/").pop() || "unknown";
+  };
+
+  const render = (lastLine = "waiting for touch..."): void => {
+    panel.textContent = [
+      "Touch Probe",
+      `bundle: ${getBundleName()}`,
+      `path: ${window.location.pathname}`,
+      `pointerdown: ${counts.pointerdown}  click: ${counts.click}`,
+      `touchstart: ${counts.touchstart}  touchend: ${counts.touchend}`,
+      lastLine,
+    ].join("\n");
+  };
+
+  const describeElement = (element: Element | null): string => {
+    if (!element) return "target: none";
+
+    const text = (element.textContent || "")
+      .trim()
+      .replace(/\s+/g, " ")
+      .slice(0, 28);
+
+    return [
+      element.tagName.toLowerCase(),
+      element.className ? `.${String(element.className).replace(/\s+/g, ".")}` : "",
+      text ? ` ${text}` : "",
+    ].join("");
+  };
+
+  const probe = (
+    eventName: keyof typeof counts,
+    target: EventTarget | null,
+    point?: { x: number; y: number },
+  ): void => {
+    counts[eventName] += 1;
+
+    const targetElement = target instanceof Element ? target : null;
+    const topElement =
+      point && document.elementFromPoint(point.x, point.y)
+        ? document.elementFromPoint(point.x, point.y)
+        : null;
+
+    const line = point
+      ? `${eventName}: ${describeElement(targetElement)} | top ${describeElement(topElement)} @ ${Math.round(point.x)},${Math.round(point.y)}`
+      : `${eventName}: ${describeElement(targetElement)}`;
+
+    render(line);
+  };
+
+  document.body.appendChild(panel);
+  render();
+
+  const pointerHandler = (event: PointerEvent): void => {
+    probe(event.type as keyof typeof counts, event.target, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+  };
+
+  const touchHandler = (event: TouchEvent): void => {
+    const touch = event.changedTouches?.[0] || event.touches?.[0];
+    probe(event.type as keyof typeof counts, event.target, touch
+      ? { x: touch.clientX, y: touch.clientY }
+      : undefined);
+  };
+
+  const clickHandler = (event: MouseEvent): void => {
+    probe("click", event.target, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+  };
+
+  document.addEventListener("pointerdown", pointerHandler, true);
+  document.addEventListener("pointerup", pointerHandler, true);
+  document.addEventListener("touchstart", touchHandler, true);
+  document.addEventListener("touchend", touchHandler, true);
+  document.addEventListener("click", clickHandler, true);
+
+  window.addEventListener("hashchange", () => render("route: hashchange"));
+  window.addEventListener("popstate", () => render("route: popstate"));
+};
+
+const syncDebugConsoleVisibility = (
+  instance: NonNullable<Window["__zxrVConsoleInstance"]>,
+  openPanel: boolean,
+  panel: DebugPanel,
+): void => {
+  instance.showSwitch?.();
+
+  if (openPanel) {
+    instance.show?.();
+    instance.showPlugin?.(panel);
+    return;
+  }
+
+  // Some iOS webviews restore the previous open state of vConsole.
+  // Force-hide it so only the floating switch remains visible.
+  const hidePanel = (): void => {
+    instance.hide?.();
+  };
+
+  hidePanel();
+  window.setTimeout(hidePanel, 0);
+  window.setTimeout(hidePanel, 120);
+};
+
 const enableMobileDebug = async (
   logs: DebugLog[],
   reportUrl: string | null,
@@ -277,10 +430,12 @@ const enableMobileDebug = async (
   openPanel: boolean,
 ): Promise<void> => {
   if (window.__zxrVConsoleLoaded) {
-    window.__zxrVConsoleInstance?.showSwitch?.();
-    if (openPanel) {
-      window.__zxrVConsoleInstance?.show?.();
-      window.__zxrVConsoleInstance?.showPlugin?.(panel);
+    if (window.__zxrVConsoleInstance) {
+      syncDebugConsoleVisibility(
+        window.__zxrVConsoleInstance,
+        openPanel,
+        panel,
+      );
     }
     replayBufferedLogs(logs);
     return;
@@ -293,14 +448,9 @@ const enableMobileDebug = async (
       theme: "light",
     });
 
-    instance.showSwitch?.();
-    if (openPanel) {
-      instance.show?.();
-      instance.showPlugin?.(panel);
-    }
-
     window.__zxrVConsoleLoaded = true;
     window.__zxrVConsoleInstance = instance;
+    syncDebugConsoleVisibility(instance, openPanel, panel);
 
     console.info("[debug] 手机调试已开启，地址加 ?debug=0 可关闭。");
     console.info("[debug] 默认只显示悬浮按钮；如需直接展开面板，可加 ?debugOpen=1。");
@@ -336,6 +486,8 @@ export default defineClientConfig({
     setupTransparentNavbar({ type: "homepage" });
 
     if (typeof window === "undefined") return;
+
+    if (resolveTouchProbeFlag()) mountTouchProbe();
 
     if (!resolveDebugFlag()) {
       if (window.__zxrVConsoleLoaded) {
