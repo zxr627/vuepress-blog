@@ -51,5 +51,5 @@ footer: "Powered by <a href=\"https://v2.vuepress.vuejs.org/zh/\" target=\"_blan
 #  </span>
 #  </center>
 
-copyright: Copyright © 2025 - present <center><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></center>
+copyright: Copyright © 2025 - present
 ---
