@@ -8,6 +8,7 @@ import "lxgw-wenkai-screen-webfont/style.css";
 
 const DEBUG_QUERY_KEY = "debug";
 const DEBUG_STORAGE_KEY = "zxr-mobile-debug";
+const OPEN_QUERY_KEY = "debugOpen";
 const PANEL_QUERY_KEY = "debugPanel";
 const PANEL_STORAGE_KEY = "zxr-mobile-debug-panel";
 const REPORT_QUERY_KEY = "reportUrl";
@@ -133,6 +134,11 @@ const resolveDebugPanel = (): DebugPanel => {
 
   const storedPanel = window.localStorage.getItem(PANEL_STORAGE_KEY);
   return panelMap[storedPanel || ""] || "default";
+};
+
+const resolveDebugOpen = (): boolean => {
+  const url = new URL(window.location.href);
+  return url.searchParams.get(OPEN_QUERY_KEY) === "1";
 };
 
 const sendDebugReport = (reportUrl: string | null, payload: DebugReport): void => {
@@ -268,11 +274,14 @@ const enableMobileDebug = async (
   logs: DebugLog[],
   reportUrl: string | null,
   panel: DebugPanel,
+  openPanel: boolean,
 ): Promise<void> => {
   if (window.__zxrVConsoleLoaded) {
-    window.__zxrVConsoleInstance?.show?.();
     window.__zxrVConsoleInstance?.showSwitch?.();
-    window.__zxrVConsoleInstance?.showPlugin?.(panel);
+    if (openPanel) {
+      window.__zxrVConsoleInstance?.show?.();
+      window.__zxrVConsoleInstance?.showPlugin?.(panel);
+    }
     replayBufferedLogs(logs);
     return;
   }
@@ -285,13 +294,16 @@ const enableMobileDebug = async (
     });
 
     instance.showSwitch?.();
-    instance.show?.();
-    instance.showPlugin?.(panel);
+    if (openPanel) {
+      instance.show?.();
+      instance.showPlugin?.(panel);
+    }
 
     window.__zxrVConsoleLoaded = true;
     window.__zxrVConsoleInstance = instance;
 
-    console.info("[debug] 手机调试面板已开启，地址加 ?debug=0 可关闭。");
+    console.info("[debug] 手机调试已开启，地址加 ?debug=0 可关闭。");
+    console.info("[debug] 默认只显示悬浮按钮；如需直接展开面板，可加 ?debugOpen=1。");
     console.info("[debug] 当前页面：", window.location.href);
     console.info("[debug] User-Agent：", window.navigator.userAgent);
 
@@ -337,7 +349,8 @@ export default defineClientConfig({
 
     const reportUrl = resolveReportUrl();
     const panel = resolveDebugPanel();
+    const openPanel = resolveDebugOpen();
     const logs = createDebugBuffer(reportUrl);
-    void enableMobileDebug(logs, reportUrl, panel);
+    void enableMobileDebug(logs, reportUrl, panel, openPanel);
   },
 });

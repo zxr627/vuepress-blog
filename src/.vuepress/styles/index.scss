@@ -26,6 +26,13 @@
     Droid Sans Fallback, Microsoft YaHei, sans-serif !important;
 }
 
+/* Blog hero mask is decorative only. Disable hit-testing so it can't swallow taps on mobile webviews. */
+.vp-blog-mask,
+.vp-blog-mask::before,
+.vp-blog-mask::after {
+  pointer-events: none !important;
+}
+
 #__vconsole {
   z-index: 2147483646 !important;
 }
