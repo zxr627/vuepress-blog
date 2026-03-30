@@ -181,6 +181,25 @@ const emitTouchCompatMessage = (message: string): void => {
   );
 };
 
+const getCompatNavigationHref = (element: HTMLElement): string | null => {
+  if (!(element instanceof HTMLAnchorElement)) return null;
+  if (!element.href) return null;
+  if (element.target && element.target.toLowerCase() === "_blank") return null;
+  if (element.hasAttribute("download")) return null;
+
+  try {
+    const url = new URL(element.href, window.location.href);
+
+    if (url.origin !== window.location.origin) return null;
+    if (url.hash && url.pathname === window.location.pathname && url.search === window.location.search)
+      return null;
+
+    return url.toString();
+  } catch {
+    return null;
+  }
+};
+
 const sendDebugReport = (reportUrl: string | null, payload: DebugReport): void => {
   if (!reportUrl) return;
 
@@ -516,6 +535,16 @@ const bindWechatIOSTouchCompat = (): void => {
 
       window.setTimeout(() => {
         if (token !== pendingToken) return;
+
+        const hardNavigateHref = getCompatNavigationHref(interactive);
+
+        if (hardNavigateHref) {
+          emitTouchCompatMessage(
+            `compat-nav: ${describeTargetElement(interactive)} -> ${hardNavigateHref.replace(window.location.origin, "")}`,
+          );
+          window.location.assign(hardNavigateHref);
+          return;
+        }
 
         compatDispatching = true;
         emitTouchCompatMessage(
