@@ -57,6 +57,19 @@ test("does not activate after scrolling beyond the movement threshold", () => {
   assert.equal(state.activations.length, 0);
 });
 
+test("does not activate a link when scrolling started outside it", () => {
+  const state = setupController();
+  const link = {};
+
+  state.controller.touchStart(null, { x: 0, y: 0 });
+  state.controller.touchMove({ x: 0, y: 100 });
+  state.controller.touchEnd(link, { x: 0, y: 100 });
+  state.runScheduled();
+
+  assert.equal(state.scheduled.length, 0);
+  assert.equal(state.activations.length, 0);
+});
+
 test("does not activate a cancelled or default-prevented touch", () => {
   const cancelled = setupController();
   const prevented = setupController();

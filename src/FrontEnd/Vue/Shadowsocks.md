@@ -1,5 +1,5 @@
 ---
-title: 基于 CentOS Stream 9 架构下的 x-ui 面板部署
+title: 基于 CentOS Stream 9 的 Shadowsocks 部署指南
 index: true
 order: 1
 date: 2026-02-09
@@ -9,21 +9,24 @@ category:
 
 
 
-# 基于 CentOS Stream 9 架构下的 x-ui 面板部署
+# 基于 CentOS Stream 9 的 Shadowsocks 部署指南
 
 这篇文档教你如何在 **RackNerd 的 VPS** 上搭建 **Shadowsocks（SS）** 服务。
 
-PS：目前已知只适用于CentOS9， 其他系统望自行尝试。
+本文主要面向 **CentOS Stream 9**。如果你使用的是其他系统，请根据实际环境调整命令。
 
 
 考虑到不同用户的使用习惯，本文提供两种方案：
 
-1. **经典脚本方案**：基于 GitHub 上常用的一键脚本（适合熟悉命令行的用户）。  
+1. **经典脚本方案**：仅适合较老的 CentOS 7 及更早系统，在 **CentOS Stream 9** 上已经不推荐使用。  
 2. **可视化面板方案（推荐）**：使用 **X-UI 面板**，支持新协议、配置直观、安全性更高。
 
-> **⚠️ 核心提醒：** > 不论选择哪种方案，都必须在**服务器防火墙**中放行端口：
+> **⚠️ 核心提醒：**
+> 不论选择哪种方案，都必须在 **服务器防火墙** 中放行端口：
 > - **方案一**：只需放行一个“连接端口”。
 > - **方案二**：需要放行“面板管理端口” + “服务连接端口”。
+
+> 如果你的服务器已经部署过 **x-ui**，并且已经创建了 `shadowsocks` 入站，一般不需要再重复安装传统脚本。
 
 
 > **强烈建议优先使用方案二**，支持最新加密算法，更稳定、不容易被封锁。
@@ -53,22 +56,34 @@ ssh root@你的服务器IP
 
 ---
 
-## 二、方案一：经典脚本安装（传统方式）
+## 二、方案一：经典脚本安装（仅限旧系统，不推荐）
 
-该方案使用一键脚本快速安装 Shadowsocks，适合熟悉 Linux 命令行的用户。
+该方案依赖 `teddysun/shadowsocks_install` 这类老脚本，适合 **CentOS 7 及更早系统**。  
+如果你使用的是 **CentOS Stream 9**，请直接跳到 [方案二](#三、方案二-x-ui-可视化面板安装-推荐)。
 
-### 1️⃣ 下载并运行安装脚本
+> **CentOS Stream 9 常见报错**
+>
+> ```bash
+> /etc/init.d/shadowsocks: No such file or directory
+> [Error] Failed to download shadowsocks chkconfig file!
+> ```
+>
+> 这不是网络问题，而是脚本本身已经过时：
+> - `CentOS Stream 9` 默认使用 `systemd`，不再依赖老的 `/etc/init.d` 目录结构
+> - 脚本后续还会调用 `chkconfig`，而新系统通常默认不提供
+> - 脚本里的防火墙逻辑只覆盖了 `CentOS 6/7`
+> - 它安装的是较老的 `Shadowsocks-Python`，不适合继续作为新系统首选方案
+
+### 1️⃣ 旧系统参考：下载并运行安装脚本
 
 ```bash
 wget --no-check-certificate -O shadowsocks.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks.sh
 chmod +x shadowsocks.sh
 ./shadowsocks.sh 2>&1 | tee shadowsocks.log
 ```
+
+
 开源地址参照：[clown-coding/vpn](https://github.com/clown-coding/vpn)
-
-
-
-
 
 
 
@@ -82,7 +97,8 @@ chmod +x shadowsocks.sh
   - `7`：aes-256-cfb（兼容性好）
   - `16`：aes-256-gcm（更安全，推荐）
 
-看到提示 **Enjoy it** 即表示安装成功。
+看到提示 **Enjoy it** 即表示安装成功。  
+如果你在 `CentOS Stream 9` 上运行时出现 `/etc/init.d/shadowsocks` 或 `chkconfig` 相关错误，请不要继续硬改脚本，直接改用 **方案二**。
 
 
 
@@ -98,11 +114,13 @@ chmod +x shadowsocks.sh
 bash <(curl -Ls https://raw.githubusercontent.com/FranzKafkaYu/x-ui/master/install.sh)
 ```
 
+
 安装过程中需要设置：
 
 - **面板账号**（默认：admin）
 - **面板密码**（默认：admin）
 - **面板端口**（建议使用冷门端口，如 `54321`）
+
 
 ### 2️⃣ 浏览器访问面板
 
@@ -170,10 +188,16 @@ sysctl -p
 ### Q1：连不上怎么办？
  
 - 检查服务器端口是否放行  
-- 可临时关闭防火墙测试：
+- 在 **CentOS Stream 9** 上，可临时停止 `firewalld` 测试：
 
 ```bash
-ufw disable
+systemctl stop firewalld
+```
+
+- 测试结束后记得重新启动：
+
+```bash
+systemctl start firewalld
 ```
 
 - 登录 RackNerd 控制台确认服务器状态为 **Running**
@@ -193,5 +217,16 @@ ufw disable
 
 - 更换冷门端口，避免使用6666 12345这些端口
 - 许多宽带运营商（尤其是国内电信、联通、移动）会对这类特征明显的端口进行深度数据包检测（DPI）
+
+---
+
+### Q4：运行经典脚本时报 `/etc/init.d/shadowsocks: No such file or directory` 怎么办？
+
+- 这是 **CentOS Stream 9 与老脚本不兼容** 导致的，不是 GitHub 下载失败
+- 不建议继续手工补 `/etc/init.d` 或强行安装 `chkconfig`
+- 最稳妥的处理方式是：
+  - 直接改用本文的 **方案二：X-UI 面板**
+  - 或者复用已经存在的 `x-ui + shadowsocks` 入站
+- 如果你只是想“开一个 Shadowsocks 端口给客户端连接”，优先用 `x-ui` 维护，比传统脚本更省事也更稳定
 
 ---

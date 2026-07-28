@@ -69,7 +69,7 @@ titles:
 </div>
 
 
-
+    
 
 
 <style>
@@ -84,7 +84,7 @@ titles:
   }
 }
 
-
+    
 
 .misc-container {
   max-width: 710px;

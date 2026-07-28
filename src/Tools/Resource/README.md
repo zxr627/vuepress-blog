@@ -1,7 +1,7 @@
 ---
-sticky: true
-star: true
-index: true
+sticky: false
+star: false
+index: false
 order: number
 toc: false
 # 路径导航

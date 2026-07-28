@@ -5,6 +5,8 @@ order: 4
 category: 
   - Poetry
   - Essays
+article: false
+index: false
 ---
 
 # 雨后游玄武湖

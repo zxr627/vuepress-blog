@@ -24,7 +24,7 @@ export const createTouchCompatController = ({
     },
 
     touchMove(point) {
-      if (!activeTarget || !startPoint) return;
+      if (!startPoint) return;
 
       if (
         Math.abs(point.x - startPoint.x) > movementThreshold ||
@@ -43,7 +43,7 @@ export const createTouchCompatController = ({
     },
 
     touchEnd(target, point, isDefaultPrevented = () => false) {
-      const resolvedTarget = target || activeTarget;
+      const resolvedTarget = activeTarget;
 
       if (!resolvedTarget || moved) {
         cancelPending();
