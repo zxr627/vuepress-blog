@@ -5,6 +5,7 @@ import "vuepress-theme-hope/presets/round-blogger-avatar.scss";
 import "vuepress-theme-hope/presets/shinning-feature-panel.scss";
 import "vuepress-theme-hope/presets/bounce-icon.scss";
 import "lxgw-wenkai-screen-webfont/style.css";
+import { isIOSTouchDevice } from "./touchCompatBrowser.mjs";
 
 const DEBUG_QUERY_KEY = "debug";
 const DEBUG_STORAGE_KEY = "zxr-mobile-debug";
@@ -148,11 +149,6 @@ const resolveDebugOpen = (): boolean => {
 const resolveTouchProbeFlag = (): boolean => {
   const url = new URL(window.location.href);
   return url.searchParams.get(TOUCH_PROBE_QUERY_KEY) === "1";
-};
-
-const isWechatIOS = (): boolean => {
-  const userAgent = window.navigator.userAgent;
-  return /MicroMessenger/i.test(userAgent) && /iPhone|iPad|iPod/i.test(userAgent);
 };
 
 const describeTargetElement = (element: Element | null): string => {
@@ -439,8 +435,18 @@ const mountTouchProbe = (): void => {
   });
 };
 
-const bindWechatIOSTouchCompat = (): void => {
-  if (window.__zxrTouchCompatBound || !isWechatIOS()) return;
+const bindIOSTouchCompat = (): void => {
+  if (
+    window.__zxrTouchCompatBound ||
+    !isIOSTouchDevice({
+      userAgent: window.navigator.userAgent,
+      platform: window.navigator.platform,
+      maxTouchPoints: window.navigator.maxTouchPoints,
+    })
+  ) {
+    return;
+  }
+
   window.__zxrTouchCompatBound = true;
 
   const interactiveSelector = [
@@ -659,7 +665,7 @@ export default defineClientConfig({
 
     if (typeof window === "undefined") return;
 
-    bindWechatIOSTouchCompat();
+    bindIOSTouchCompat();
 
     if (resolveTouchProbeFlag()) mountTouchProbe();
 
