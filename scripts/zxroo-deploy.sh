@@ -15,6 +15,12 @@ required_files=(
   "0752e0217f4f06edf6c758d09659d6da.txt"
 )
 temporary_dir=""
+cleanup_archive=""
+
+cleanup_activation() {
+  [[ -z "$temporary_dir" ]] || rm -rf -- "$temporary_dir" || true
+  [[ -z "$cleanup_archive" ]] || rm -f -- "$cleanup_archive" || true
+}
 
 fail() {
   printf 'zxroo-deploy: %s\n' "$*" >&2
@@ -40,6 +46,7 @@ validate_release_name() {
 validate_archive_paths() {
   local archive="$1"
   local entry
+  local entry_type
 
   while IFS= read -r entry; do
     entry="${entry#./}"
@@ -50,29 +57,73 @@ validate_archive_paths() {
         ;;
     esac
   done < <(tar -tzf "$archive")
+
+  while IFS= read -r entry; do
+    entry_type="${entry:0:1}"
+    case "$entry_type" in
+      "-" | "d") ;;
+      *)
+        fail "unsafe archive entry type: ${entry_type}"
+        ;;
+    esac
+  done < <(tar -tvzf "$archive")
 }
 
 validate_release_files() {
   local release_dir="$1"
+  local path
   local required
+  local resolved
+  local release_root
+
+  release_root="$(readlink -f "$release_dir")"
+
+  while IFS= read -r -d '' path; do
+    [[ ! -L "$path" ]] || fail "release contains a symbolic link: ${path}"
+    [[ -d "$path" || -f "$path" ]] ||
+      fail "release contains a special file: ${path}"
+    resolved="$(readlink -f "$path")"
+    [[ "$resolved" == "$release_root"/* ]] ||
+      fail "release path escapes its root: ${path}"
+  done < <(find -P "$release_dir" -mindepth 1 -print0)
 
   for required in "${required_files[@]}"; do
-    [[ -f "${release_dir}/${required}" ]] ||
+    [[ -f "${release_dir}/${required}" && ! -L "${release_dir}/${required}" ]] ||
       fail "missing required file: ${required}"
   done
 }
 
 prune_releases() {
+  local -a protected_releases=("$@")
   local -a releases=()
+  local count
+  local index
+  local protected
   local release
+  local should_keep
 
   while IFS= read -r release; do
     releases+=("$release")
   done < <(ls -1dt "${releases_dir}"/* 2>/dev/null || true)
 
-  if ((${#releases[@]} > 5)); then
-    rm -rf -- "${releases[@]:5}"
-  fi
+  count="${#releases[@]}"
+
+  for ((index = count - 1; index >= 0 && count > 5; index -= 1)); do
+    release="${releases[$index]}"
+    should_keep=false
+
+    for protected in "${protected_releases[@]}"; do
+      if [[ -n "$protected" && "$release" == "$protected" ]]; then
+        should_keep=true
+        break
+      fi
+    done
+
+    if [[ "$should_keep" == false ]]; then
+      rm -rf -- "$release"
+      count=$((count - 1))
+    fi
+  done
 }
 
 activate_release() {
@@ -88,11 +139,14 @@ activate_release() {
 
   mkdir -p "$incoming_dir" "$releases_dir"
   archive="$(readlink -f "$archive")"
+  if [[ "$(dirname "$archive")" == "$(readlink -f "$incoming_dir")" ]]; then
+    cleanup_archive="$archive"
+  fi
   release_dir="${releases_dir}/${release_name}"
   temporary_dir="${releases_dir}/.${release_name}.tmp.$$"
   rm -rf "$temporary_dir"
   mkdir -p "$temporary_dir"
-  trap '[[ -n "${temporary_dir:-}" ]] && rm -rf "$temporary_dir"' EXIT
+  trap cleanup_activation EXIT
 
   validate_archive_paths "$archive"
   tar -xzf "$archive" -C "$temporary_dir"
@@ -111,17 +165,18 @@ activate_release() {
 
   if [[ -L "$current_link" ]]; then
     previous_target="$(readlink "$current_link")"
-    replace_link "$previous_target" "$previous_link"
   fi
 
-  replace_link "$release_dir" "$current_link"
-  prune_releases
-  if [[ "$(dirname "$archive")" == "$(readlink -f "$incoming_dir")" ]]; then
-    rm -f -- "$archive"
+  prune_releases "$release_dir" "${previous_target:-}"
+  if [[ -n "${previous_target:-}" ]]; then
+    replace_link "$previous_target" "$previous_link"
   fi
+  replace_link "$release_dir" "$current_link"
   temporary_dir=""
+  cleanup_activation
+  cleanup_archive=""
   trap - EXIT
-  printf 'activated %s\n' "$release_name"
+  printf 'activated %s\n' "$release_name" || true
 }
 
 rollback_release() {

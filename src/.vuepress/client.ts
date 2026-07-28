@@ -6,6 +6,7 @@ import "vuepress-theme-hope/presets/shinning-feature-panel.scss";
 import "vuepress-theme-hope/presets/bounce-icon.scss";
 import "lxgw-wenkai-screen-webfont/style.css";
 import { isIOSTouchDevice } from "./touchCompatBrowser.mjs";
+import { createTouchCompatController } from "./touchCompatController.mjs";
 
 const DEBUG_QUERY_KEY = "debug";
 const DEBUG_STORAGE_KEY = "zxr-mobile-debug";
@@ -463,12 +464,7 @@ const bindIOSTouchCompat = (): void => {
     ".vp-blogger[role='link']",
   ].join(", ");
 
-  let startX = 0;
-  let startY = 0;
-  let moved = false;
-  let pendingToken = 0;
   let compatDispatching = false;
-  let lastInteractive: HTMLElement | null = null;
 
   const findInteractiveTarget = (target: EventTarget | null): HTMLElement | null => {
     if (!(target instanceof Element)) return null;
@@ -483,16 +479,51 @@ const bindIOSTouchCompat = (): void => {
     return interactive;
   };
 
+  const controller = createTouchCompatController({
+    schedule: (callback, delay) => window.setTimeout(callback, delay),
+    activate: (interactive: HTMLElement, point: { x: number; y: number }) => {
+      const hardNavigateHref = getCompatNavigationHref(interactive);
+
+      if (hardNavigateHref) {
+        emitTouchCompatMessage(
+          `compat-nav: ${describeTargetElement(interactive)} -> ${hardNavigateHref.replace(window.location.origin, "")}`,
+        );
+        window.location.assign(hardNavigateHref);
+        return;
+      }
+
+      compatDispatching = true;
+      emitTouchCompatMessage(
+        `compat-click: ${describeTargetElement(interactive)} @ ${Math.round(point.x)},${Math.round(point.y)}`,
+      );
+
+      interactive.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+          view: window,
+          clientX: point.x,
+          clientY: point.y,
+        }),
+      );
+
+      window.setTimeout(() => {
+        compatDispatching = false;
+      }, 0);
+    },
+  });
+
   document.addEventListener(
     "touchstart",
     (event) => {
       const touch = event.changedTouches?.[0] || event.touches?.[0];
       if (!touch) return;
 
-      startX = touch.clientX;
-      startY = touch.clientY;
-      moved = false;
-      lastInteractive = findInteractiveTarget(event.target);
+      controller.touchStart(findInteractiveTarget(event.target), {
+        x: touch.clientX,
+        y: touch.clientY,
+      });
     },
     true,
   );
@@ -503,12 +534,10 @@ const bindIOSTouchCompat = (): void => {
       const touch = event.changedTouches?.[0] || event.touches?.[0];
       if (!touch) return;
 
-      if (
-        Math.abs(touch.clientX - startX) > 12 ||
-        Math.abs(touch.clientY - startY) > 12
-      ) {
-        moved = true;
-      }
+      controller.touchMove({
+        x: touch.clientX,
+        y: touch.clientY,
+      });
     },
     true,
   );
@@ -518,8 +547,15 @@ const bindIOSTouchCompat = (): void => {
     (event) => {
       if (compatDispatching) return;
 
-      const interactive = findInteractiveTarget(event.target);
-      if (interactive && interactive === lastInteractive) pendingToken += 1;
+      controller.click(findInteractiveTarget(event.target));
+    },
+    true,
+  );
+
+  document.addEventListener(
+    "touchcancel",
+    () => {
+      controller.touchCancel();
     },
     true,
   );
@@ -528,50 +564,16 @@ const bindIOSTouchCompat = (): void => {
     "touchend",
     (event) => {
       const touch = event.changedTouches?.[0] || event.touches?.[0];
-      if (!touch || moved) return;
+      if (!touch) return;
 
-      const interactive = findInteractiveTarget(event.target) || lastInteractive;
-      if (!interactive) return;
-
-      const token = ++pendingToken;
-      const point = {
+      controller.touchEnd(
+        findInteractiveTarget(event.target),
+        {
         x: touch.clientX,
         y: touch.clientY,
-      };
-
-      window.setTimeout(() => {
-        if (token !== pendingToken) return;
-
-        const hardNavigateHref = getCompatNavigationHref(interactive);
-
-        if (hardNavigateHref) {
-          emitTouchCompatMessage(
-            `compat-nav: ${describeTargetElement(interactive)} -> ${hardNavigateHref.replace(window.location.origin, "")}`,
-          );
-          window.location.assign(hardNavigateHref);
-          return;
-        }
-
-        compatDispatching = true;
-        emitTouchCompatMessage(
-          `compat-click: ${describeTargetElement(interactive)} @ ${Math.round(point.x)},${Math.round(point.y)}`,
-        );
-
-        interactive.dispatchEvent(
-          new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-            composed: true,
-            view: window,
-            clientX: point.x,
-            clientY: point.y,
-          }),
-        );
-
-        window.setTimeout(() => {
-          compatDispatching = false;
-        }, 0);
-      }, 80);
+        },
+        () => event.defaultPrevented,
+      );
     },
     true,
   );

@@ -6,6 +6,7 @@ import {
   mkdirSync,
   readFileSync,
   readlinkSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -70,13 +71,44 @@ const runDeploy = (deployRoot, ...args) =>
 
 test("rejects an incomplete release archive", () => {
   const root = mkdtempSync(path.join(tmpdir(), "zxroo-deploy-"));
-  const archive = createArchive(root, "bad-release", ["404.html"]);
+  const archive = createArchive(
+    path.join(root, "incoming"),
+    "bad-release",
+    ["404.html"],
+  );
 
   assert.throws(
     () => runDeploy(root, "activate", "bad-release", archive),
     /missing required file: index\.html/,
   );
+  assert.equal(existsSync(archive), false);
 });
+
+test(
+  "rejects symbolic links in a release archive",
+  { skip: process.platform === "win32" && "requires Linux symlinks" },
+  () => {
+    const root = mkdtempSync(path.join(tmpdir(), "zxroo-deploy-"));
+    const source = path.join(root, "unsafe-source");
+    const archive = path.join(root, "incoming", "unsafe.tar.gz");
+    mkdirSync(path.dirname(archive), { recursive: true });
+    mkdirSync(source);
+
+    for (const file of requiredFiles.filter((file) => file !== "index.html")) {
+      writeFileSync(path.join(source, file), `${file}\n`);
+    }
+    symlinkSync("/etc/passwd", path.join(source, "index.html"));
+    execFileSync("tar", ["-czf", archive, "-C", source, "."], {
+      stdio: "pipe",
+    });
+
+    assert.throws(
+      () => runDeploy(root, "activate", "unsafe", archive),
+      /unsafe archive entry type/,
+    );
+    assert.equal(existsSync(archive), false);
+  },
+);
 
 test(
   "activates releases atomically and rolls back to the previous release",
@@ -161,6 +193,7 @@ test("workflow builds once and deploys the verified artifact to ECS", () => {
     "concurrency:",
     "environment: production",
     "npm ci",
+    "node --test tests/*.test.mjs",
     "actions/upload-artifact@v4",
     "actions/download-artifact@v4",
     "secrets.ECS_HOST",
@@ -172,7 +205,7 @@ test("workflow builds once and deploys the verified artifact to ECS", () => {
     "zxroo-deploy rollback",
     "https://zxroo.top/",
   ]) {
-    assert.match(workflow, new RegExp(required.replaceAll(".", "\\.")));
+    assert.ok(workflow.includes(required), `workflow is missing: ${required}`);
   }
 
   assert.doesNotMatch(workflow, /actions-gh-pages|peaceiris|CNAME/);
