@@ -1,69 +1,128 @@
-name: Build & Deploy VuePress site to gh-pages
+name: Build and deploy VuePress to ECS
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zxroo-production
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: 'npm'
+          cache: npm
 
-      - name: Install dependencies
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run docs:build
+
+      - name: Verify required public files
         run: |
-          npm install
-          # 验证依赖安装
-          if [ -d "node_modules/vuepress" ]; then
-            echo "✅ VuePress installed successfully"
-          else
-            echo "❌ VuePress installation failed"
-            exit 1
-          fi
+          set -euo pipefail
+          for file in \
+            index.html \
+            404.html \
+            robots.txt \
+            sitemap.xml \
+            0752e0217f4f06edf6c758d09659d6da.txt
+          do
+            test -f "src/.vuepress/dist/${file}" || {
+              echo "Missing required build output: ${file}" >&2
+              exit 1
+            }
+          done
 
-      - name: Build site (src directory)
-        run: |
-          npm run docs:build  # 对应 package.json 中的 "vuepress build src"
-          # 验证构建目录
-          if [ -d "src/.vuepress/dist" ]; then
-            echo "✅ Build completed, dist directory exists"
-          else
-            echo "❌ Build failed, dist directory not found"
-            exit 1
-          fi
+      - name: Package site
+        run: tar -czf "${RUNNER_TEMP}/zxroo-site.tar.gz" -C src/.vuepress/dist .
 
-      - name: Verify index.html exists
-        run: |
-          # 检查 src/.vuepress/dist 下是否有 index.html
-          if [ -f "src/.vuepress/dist/index.html" ]; then
-            echo "✅ index.html found in src/.vuepress/dist"
-          else
-            echo "❌ index.html not found in src/.vuepress/dist"
-            exit 1
-          fi
-          # 列出构建目录内容，确认文件完整
-          ls -la src/.vuepress/dist
-
-      - name: Add CNAME file
-        run: echo "zxroo.top" > src/.vuepress/dist/CNAME
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3.9.3
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./src/.vuepress/dist
-          force_orphan: true
-          commit_message: "Deploy from main: ${{ github.sha }}"
+          name: zxroo-site-${{ github.sha }}
+          path: ${{ runner.temp }}/zxroo-site.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: zxroo-site-${{ github.sha }}
+          path: package
+
+      - name: Configure pinned SSH connection
+        env:
+          ECS_SSH_PRIVATE_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+          ECS_KNOWN_HOSTS: ${{ secrets.ECS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "${HOME}/.ssh"
+          printf '%s\n' "${ECS_SSH_PRIVATE_KEY}" > "${HOME}/.ssh/id_ed25519"
+          chmod 600 "${HOME}/.ssh/id_ed25519"
+          printf '%s\n' "${ECS_KNOWN_HOSTS}" > "${HOME}/.ssh/known_hosts"
+          chmod 600 "${HOME}/.ssh/known_hosts"
+
+      - name: Activate release and verify HTTPS
+        env:
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_PORT: ${{ secrets.ECS_PORT }}
+          ECS_USER: ${{ secrets.ECS_USER }}
+        run: |
+          set -euo pipefail
+          remote_archive="/var/www/zxroo/incoming/${GITHUB_SHA}.tar.gz"
+          ssh_target="${ECS_USER}@${ECS_HOST}"
+          ssh_options=(
+            -i "${HOME}/.ssh/id_ed25519"
+            -o BatchMode=yes
+            -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=yes
+            -p "${ECS_PORT}"
+          )
+
+          scp \
+            -i "${HOME}/.ssh/id_ed25519" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -P "${ECS_PORT}" \
+            package/zxroo-site.tar.gz \
+            "${ssh_target}:${remote_archive}"
+
+          ssh "${ssh_options[@]}" "${ssh_target}" \
+            "zxroo-deploy activate '${GITHUB_SHA}' '${remote_archive}'"
+
+          if ! curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --retry 5 \
+            --retry-delay 2 \
+            --retry-all-errors \
+            https://zxroo.top/ > /dev/null
+          then
+            ssh "${ssh_options[@]}" "${ssh_target}" "zxroo-deploy rollback"
+            exit 1
+          fi
