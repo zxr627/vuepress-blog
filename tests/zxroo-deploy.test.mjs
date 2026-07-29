@@ -191,6 +191,7 @@ test("workflow builds once and deploys the verified artifact to ECS", () => {
     "permissions:",
     "contents: read",
     "concurrency:",
+    "fetch-depth: 0",
     "environment: production",
     "npm ci",
     "node --test tests/*.test.mjs",
