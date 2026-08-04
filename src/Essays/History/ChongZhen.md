@@ -1,6 +1,7 @@
 ---
 title: 江山尽处
-index: true
+article: false
+index: false
 order: 4
 date: 2026-07-26
 tag:
