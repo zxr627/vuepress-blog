@@ -1,5 +1,4 @@
 import { defineClientConfig } from "vuepress/client";
-import { setupRunningTimeFooter } from "vuepress-theme-hope/presets/footerRunningTime.js";
 import { setupTransparentNavbar } from "vuepress-theme-hope/presets/transparentNavbar.js";
 import "vuepress-theme-hope/presets/round-blogger-avatar.scss";
 import "vuepress-theme-hope/presets/shinning-feature-panel.scss";
@@ -17,6 +16,8 @@ const REPORT_QUERY_KEY = "reportUrl";
 const REPORT_STORAGE_KEY = "zxr-debug-report-url";
 const TOUCH_PROBE_QUERY_KEY = "touchProbe";
 const DEBUG_REPLAY_LIMIT = 30;
+const RUNNING_TIME_START = new Date("2025-07-15").getTime();
+const ICP_FILING_URL = "https://beian.miit.gov.cn/";
 
 type DebugLogType =
   | "info"
@@ -51,6 +52,8 @@ declare global {
     __zxrTouchCompatBound?: boolean;
     __zxrTouchProbeMounted?: boolean;
     __zxrVConsoleLoaded?: boolean;
+    __zxrRunningTimeFooterBound?: boolean;
+    __zxrIcpFilingLinkBound?: boolean;
     __zxrVConsoleInstance?: {
       destroy?: () => void;
       hide?: () => void;
@@ -152,6 +155,82 @@ const resolveTouchProbeFlag = (): boolean => {
   return url.searchParams.get(TOUCH_PROBE_QUERY_KEY) === "1";
 };
 
+const formatRunningTime = (): string => {
+  const elapsed = Math.max(0, Date.now() - RUNNING_TIME_START);
+  const days = Math.floor(elapsed / 86_400_000);
+  const hours = Math.floor((elapsed % 86_400_000) / 3_600_000);
+  const minutes = Math.floor((elapsed % 3_600_000) / 60_000);
+  const seconds = Math.floor((elapsed % 60_000) / 1_000);
+
+  return `本站已运行 ${days} 天 ${hours} 小时 ${minutes} 分钟 ${seconds} 秒`;
+};
+
+const mountRunningTimeFooter = (): void => {
+  if (window.__zxrRunningTimeFooterBound) return;
+  window.__zxrRunningTimeFooterBound = true;
+
+  const render = (): boolean => {
+    const footer = document.querySelector<HTMLElement>(".vp-footer");
+    if (!footer) return false;
+
+    let runningTime = footer.querySelector<HTMLElement>("#zxr-running-time");
+
+    if (!runningTime) {
+      runningTime = document.createElement("div");
+      runningTime.id = "zxr-running-time";
+      runningTime.setAttribute("aria-live", "off");
+      footer.append(runningTime);
+    }
+
+    // Only update the timer node; replacing footer.innerHTML disconnects its links.
+    runningTime.textContent = formatRunningTime();
+    return true;
+  };
+
+  const start = (): void => {
+    if (!render()) {
+      window.setTimeout(start, 50);
+      return;
+    }
+
+    window.setInterval(render, 1_000);
+  };
+
+  window.setTimeout(start, 0);
+};
+
+const bindIcpFilingLink = (): void => {
+  if (window.__zxrIcpFilingLinkBound) return;
+  window.__zxrIcpFilingLinkBound = true;
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey ||
+        !(event.target instanceof Element)
+      ) {
+        return;
+      }
+
+      const link = event.target.closest<HTMLAnchorElement>(
+        `a[href="${ICP_FILING_URL}"]`,
+      );
+
+      if (!link) return;
+
+      event.preventDefault();
+      window.location.assign(link.href);
+    },
+    true,
+  );
+};
+
 const describeTargetElement = (element: Element | null): string => {
   if (!element) return "target: none";
 
@@ -187,7 +266,6 @@ const getCompatNavigationHref = (element: HTMLElement): string | null => {
   try {
     const url = new URL(element.href, window.location.href);
 
-    if (url.origin !== window.location.origin) return null;
     if (url.hash && url.pathname === window.location.pathname && url.search === window.location.search)
       return null;
 
@@ -654,18 +732,25 @@ const enableMobileDebug = async (
 };
 
 export default defineClientConfig({
-  setup: () => {
-    setupRunningTimeFooter(
-      new Date("2025-07-15"),
-      {
-        "/": "本站已运行 :day 天 :hour 小时 :minute 分钟 :second 秒",
-      },
-      true,
-    );
+  enhance: ({ router }) => {
+    if (typeof window === "undefined") return;
 
+    router.beforeEach((to, from) => {
+      if (from.path !== "/intro.html" || to.path === from.path) return true;
+
+      // The theme keeps PortfolioHero alive during the leave transition and
+      // can read an invalid media item after its page data has changed.
+      window.location.assign(to.fullPath);
+      return false;
+    });
+  },
+  setup: () => {
     setupTransparentNavbar({ type: "homepage" });
 
     if (typeof window === "undefined") return;
+
+    mountRunningTimeFooter();
+    bindIcpFilingLink();
 
     bindIOSTouchCompat();
 

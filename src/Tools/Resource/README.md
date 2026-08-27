@@ -1,7 +1,7 @@
 ---
-sticky: false
-star: false
-index: false
+sticky: true
+star: true
+index: true
 order: number
 toc: false
 # 路径导航
@@ -9,7 +9,7 @@ breadcrumb: false
 # 评论
 comment: false
 # 侧边栏
-sidebar: false
+sidebar: true
 # 页脚
 footer: false
 # 贡献者
@@ -24,9 +24,17 @@ tag:
 
 # 资源整合
 
-## 1. 🪐 [ChatGPT](https://chat.openai.com/)
 
-## 2. 🌏 资源整合网站 
+## 1. 🌏 资源整合网站 
+
+<VPCard
+title="系统激活工具"
+desc="Window10/11 "
+logo="/assets/resource/navlogo_white.svg"
+link="https://github.com/massgravel/Microsoft-Activation-Scripts"
+background="rgba(253, 230, 138, 0.15)"
+/>
+
 
 <VPCard
   title="开源工具导航"

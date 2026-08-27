@@ -18,7 +18,7 @@ tag:
 
 home: true
 portfolio: true
-welcome: 👋 你好，我是
+welcome: 你好，我是
 name: Zhaoxr
 bgImage: assets/intro/star.jpg
 avatar: assets/intro/IntroduceLogo.png

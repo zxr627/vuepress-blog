@@ -67,7 +67,7 @@ export default hopeTheme({
 
   locales: {
     "/": {
-      footer: "<a href=\"https://beian.miit.gov.cn/\" target=\"_blank\" rel=\"noopener noreferrer\">豫ICP备2026033694号</a> | Powered by <a href=\"https://v2.vuepress.vuejs.org/zh/\" target=\"_blank\" rel=\"noopener noreferrer\">VuePress</a>",
+      footer: "<a href=\"https://beian.miit.gov.cn/\" rel=\"noopener noreferrer\">豫ICP备2026033694号</a> | Powered by <a href=\"https://v2.vuepress.vuejs.org/zh/\" rel=\"noopener noreferrer\">VuePress</a>",
       displayFooter: true,
       copyright: 'Copyright © 2025 - present',
       // copyright: `Copyright © 2025 - present

@@ -16,7 +16,7 @@ heroFullScreen: true
 projects:
   - icon: /assets/icon/javaguide.svg
     name: JavaGuide
-    desc: Java面试 + 学习指南
+    desc: Java学习指南
     link: https://javaguide.cn/home.html
 
   - icon: /assets/icon/xiaolin.svg
@@ -34,7 +34,6 @@ projects:
     desc: 稀土掘金
     link: https://juejin.cn/
 
-footer: "Powered by <a href=\"https://v2.vuepress.vuejs.org/zh/\" target=\"_blank\"> VuePress </a> "
 #copyright: Copyright © 2025 - present
 #  <center>
 #  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>

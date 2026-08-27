@@ -12,6 +12,9 @@
     "docs:update-package": "pnpm dlx vp-update"
   },
 
+
+
+
   "devDependencies": {
     "@vuepress/bundler-vite": "2.0.0-rc.13",
     "sass": "^1.63.6",
@@ -21,6 +24,9 @@
     "vuepress-plugin-search-pro": "2.0.0-rc.48",
     "vuepress-theme-hope": "2.0.0-rc.48"
   },
+
+
+
 
   "dependencies": {
     "lxgw-wenkai-screen-webfont": "^1.7.0",
