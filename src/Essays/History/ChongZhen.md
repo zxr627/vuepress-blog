@@ -1,9 +1,9 @@
 ---
 title: 江山尽处
-article: false
-index: false
+article: true
+index: true
 order: 4
-date: 2026-07-26
+date: 2026-06-26
 tag:
   - 崇祯
   - 明末

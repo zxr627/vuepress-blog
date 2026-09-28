@@ -1,7 +1,7 @@
 ---
-sticky: true
-star: true
-index: true
+sticky: false
+star: false
+index: false
 order: number
 toc: false
 # 路径导航
@@ -9,7 +9,7 @@ breadcrumb: false
 # 评论
 comment: false
 # 侧边栏
-sidebar: true
+sidebar: false
 # 页脚
 footer: false
 # 贡献者
@@ -103,3 +103,7 @@ background="rgba(253, 230, 138, 0.15)"
   link="https://www.webfx.com/tools/emoji-cheat-sheet/"
   background="rgba(253, 230, 138, 0.15)"
 />
+
+
+
+

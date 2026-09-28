@@ -92,7 +92,7 @@ export default navbar([
       {
         text: '分类',
         children: [
-          { text: "历史漫谈", icon: '/assets/icon/hourglass.svg', link: "/Essays/History/" },
+          { text: "历史漫谈", icon: '/assets/icon/hourglass.svg', link: "/Essays/History/NanMingBeiGe.html" },
           { text: "日常散文", icon: '/assets/icon/markdown.svg', link: "/Essays/Daily/" },
           { text: "诗词作品", icon: '/assets/icon/douban.svg', link: "/Essays/Poem/" },
         ]
