@@ -2,7 +2,7 @@
 title: 病中作
 index: true
 order: 14
-date: 2026-09-29
+date: 2026-08-29
 category:
   - Essays
   - Poem
