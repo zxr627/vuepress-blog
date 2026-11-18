@@ -13,6 +13,17 @@ export default defineUserConfig({
     viteOptions: {},
     vuePluginOptions: {},
   }),
-  plugins: [],
+  plugins: [
+    {
+      name: "poem-contributor",
+      onInitialized: (app) => {
+        const page = app.pages.find(
+          (item) => item.filePathRelative === "Essays/Poem/CunYuMiao.md",
+        );
+        if (page?.data.git)
+          page.data.git.contributors = [{ name: "郭狗", email: "", commits: 1 }];
+      },
+    },
+  ],
   shouldPrefetch: false,
 });
